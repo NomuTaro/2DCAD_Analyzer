@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}DXF図形カウンター{% endblock %}
+
+{% block content %}
+<style>
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1050; display: none; justify-content: center; align-items: center; }
+    .modal-content-custom { background: white; padding: 20px 40px; border-radius: 8px; text-align: center; z-index: 1051; }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">① 汎用 DXF図形カウンター</h1>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">メインメニューに戻る</a>
+    </div>
+
+    <!-- STEP 1: ファイルアップロード -->
+    <div class="card mb-4">
+        <div class="card-header"><b>STEP 1: DXFファイルの選択</b></div>
+        <div class="card-body">
+            {% if not filename %}
+            <form id="upload-form" method="post" enctype="multipart/form-data">
+                <p class="text-muted">解析したいDXFファイルをアップロードしてください。</p>
+                <div class="input-group">
+                    <input type="file" class="form-control" name="dxf_file" id="dxf_file" accept=".dxf" required>
+                    <button type="submit" name="upload" value="1" class="btn btn-primary">アップロード</button>
+                </div>
+            </form>
+            {% else %}
+            <div class="d-flex justify-content-between align-items-center">
+                <span>現在選択中のファイル: <b>{{ filename }}</b></span>
+                <a href="{{ url_for('shape_analyzer', new=true) }}" class="btn btn-outline-secondary btn-sm">別のファイルをアップロード</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- STEP 2 & 3: 解析と結果表示 -->
+    {% if filename %}
+    <div class="row g-4">
+        <!-- STEP 2: 解析実行 -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header"><b>STEP 2: 解析の実行</b></div>
+                <div class="card-body">
+                    <form id="analyze-form" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">探索する図形を選択 (複数選択可)</label>
+                            <div class="row">
+                                {% for key, definition in definitions.items() %}
+                                <div class="col-md-6"><div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="shapes_to_find" value="{{ key }}" id="shape_{{ key }}">
+                                    <label class="form-check-label" for="shape_{{ key }}">{{ definition.name }}</label>
+                                </div></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="submit" name="analyze" value="1" class="btn btn-primary w-100 processing-button">解析開始</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- STEP 3: 結果表示と出力 -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header"><b>STEP 3: 解析結果と出力</b></div>
+                <div class="card-body">
+                {% if results is not none %}
+                    {% if results %}
+                        <form id="generate-form" method="post">
+                            <input type="hidden" name="analysis_results" value="{{ results|tojson }}">
+                            <table class="table table-striped align-middle">
+                                <thead><tr><th>図形名</th><th class="text-center">検出数</th><th class="text-center">色番号 (1:赤)</th></tr></thead>
+                                <tbody>
+                                {% for key, data in results.items() %}
+                                    <tr>
+                                        <td>{{ data.name }}</td>
+                                        <td class="text-center">{{ data.count }}</td>
+                                        <td class="text-center"><input type="number" name="color_{{ key }}" class="form-control form-control-sm mx-auto" style="width: 80px;" value="1" min="1"></td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="mt-3 text-end">
+                                <button type="submit" name="generate" value="excel" class="btn btn-success download-button">色変更したExcelを出力</button>
+                                <button type="submit" name="generate" value="dxf" class="btn btn-dark download-button">色変更したDXFを出力</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <p class="text-center text-muted">選択された図形は見つかりませんでした。</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-center text-muted">「解析開始」ボタンを押すと、ここに結果が表示されます。</p>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 処理中モーダル -->
+<div id="loading-modal" class="modal-backdrop">
+    <div class="modal-content-custom">
+        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+        <p class="mt-2 mb-0">処理中です。しばらくお待ちください...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loadingModal = document.getElementById('loading-modal');
+    
+    // 解析開始ボタンとアップロードボタンでモーダル表示
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            const submitter = event.submitter;
+            if (submitter && (submitter.name === 'analyze' || submitter.name === 'upload')) {
+                loadingModal.style.display = 'flex';
+            }
+        });
+    });
+
+    // ダウンロードボタンではモーダルを表示しない
+    // (JavaScriptでの特別な処理は不要)
+});
+</script>
+{% endblock %}

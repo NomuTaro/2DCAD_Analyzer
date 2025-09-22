@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}メインメニュー{% endblock %}
+{% block content %}
+<div class="container text-center mt-5">
+    <h1>DXF処理ツール プラットフォーム</h1>
+    <p class="lead text-muted">実行したい機能を選択してください。</p>
+    <div class="row justify-content-center mt-4 g-3">
+        <div class="col-md-8">
+             <a href="{{ url_for('shape_analyzer') }}" class="btn btn-primary btn-lg d-block p-4">
+                <h5 class="mb-1">① 汎用 DXF図形カウンター</h5>
+                <small>DXFファイルから様々な種類の図形を自動で探索し、数を数えます。</small>
+            </a>
+        </div>
+        <div class="col-md-8">
+            <a href="{{ url_for('editor_home') }}" class="btn btn-success btn-lg d-block p-4">
+                <h5 class="mb-1">② テキスト探索と明細書作成</h5>
+                <small>テキストや図形を探索し、内訳明細書を作成・編集・出力します。</small>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

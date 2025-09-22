@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}プロジェクト一覧{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>② 明細書作成プロジェクト一覧</h2>
+         <a href="{{ url_for('home') }}" class="btn btn-secondary">メインメニューに戻る</a>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">新しいプロジェクトを作成</h5>
+            <form action="{{ url_for('create_project') }}" method="post" enctype="multipart/form-data">
+                <div class="mb-3"><label for="project_name" class="form-label">プロジェクト名</label><input type="text" class="form-control" id="project_name" name="project_name" required></div>
+                <div class="mb-3"><label for="dxf_file" class="form-label">DXFファイルをアップロード</label><input type="file" class="form-control" id="dxf_file" name="dxf_file" accept=".dxf" required></div>
+                <button type="submit" class="btn btn-success">作成してエディタを開く</button>
+            </form>
+        </div>
+    </div>
+    <ul class="list-group">
+        {% for project in projects %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div><a href="{{ url_for('editor', project_id=project.id) }}" style="text-decoration: none; color: inherit; font-weight: bold;">{{ project.name }}</a><small class="text-muted d-block">工事場所: {{ project.kouji_basho }}</small></div>
+                <div>
+                    <a href="{{ url_for('editor', project_id=project.id) }}" class="btn btn-primary btn-sm">開く</a>
+                    <form action="{{ url_for('delete_project', project_id=project.id) }}" method="post" style="display: inline-block;" onsubmit="return confirm('本当にこのプロジェクトを削除しますか？');"><button type="submit" class="btn btn-danger btn-sm">削除</button></form>
+                </div>
+            </li>
+        {% else %}
+            <li class="list-group-item">まだプロジェクトがありません。</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
